@@ -1,5 +1,4 @@
 import os from 'os';
-import { writeFile } from 'fs/promises';
 import { createCanvas, loadImage } from 'canvas';
 import imagemin from 'imagemin';
 import imageminPngquant from 'imagemin-pngquant';
@@ -7,6 +6,7 @@ import log from 'loglevel';
 
 import { readJsonFile } from '../helpers/various';
 import { ASSETS_DIRECTORY, TRAITS_DIRECTORY } from '../helpers/metadata';
+const fsPromises = require('fs').promises;
 
 function makeCreateImageWithCanvas(order, width, height) {
   return function makeCreateImage(canvas, context) {
@@ -29,7 +29,10 @@ function makeCreateImageWithCanvas(order, width, height) {
           }),
         ],
       });
-      await writeFile(`${ASSETS_DIRECTORY}/${ID}.png`, optimizedImage);
+      await fsPromises.writeFile(
+        `${ASSETS_DIRECTORY}/${ID}.png`,
+        optimizedImage,
+      );
       const end = Date.now();
       log.info(`Placed ${ID}.png into ${ASSETS_DIRECTORY}.`);
       const duration = end - start;
@@ -59,9 +62,7 @@ export async function createGenerativeArt(
 
   const workers = [];
   const workerNb = Math.min(CONCURRENT_WORKERS, imagesNb);
-  log.info(
-    `Instanciating ${workerNb} workers to generate ${imagesNb} images.`,
-  );
+  log.info(`Instanciating ${workerNb} workers to generate ${imagesNb} images.`);
   for (let i = 0; i < workerNb; i++) {
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
@@ -73,8 +74,5 @@ export async function createGenerativeArt(
   await Promise.all(workers);
   const end = Date.now();
   const duration = end - start;
-  log.info(
-    `Generated ${imagesNb} images in`,
-    `${duration / 1000}s.`,
-  );
+  log.info(`Generated ${imagesNb} images in`, `${duration / 1000}s.`);
 }

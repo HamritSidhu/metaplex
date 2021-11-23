@@ -4,10 +4,10 @@ import fs from 'fs';
 import path from 'path';
 import log from 'loglevel';
 import fetch from 'node-fetch';
-import { stat } from 'fs/promises';
 import { calculate } from '@metaplex/arweave-cost';
 import { ARWEAVE_PAYMENT_WALLET } from '../constants';
 import { sendTransactionWithRetryWithKeypair } from '../transactions';
+const fsPromises = require('fs').promises;
 
 const ARWEAVE_UPLOAD_ENDPOINT =
   'https://us-central1-metaplex-studios.cloudfunctions.net/uploadFile';
@@ -63,7 +63,7 @@ export async function arweaveUpload(
   manifest, // TODO rename metadata
   index,
 ) {
-  const fsStat = await stat(image);
+  const fsStat = await fsPromises.stat(image);
   const estimatedManifestSize = estimateManifestSize([
     'image.png',
     'metadata.json',
@@ -106,9 +106,7 @@ export async function arweaveUpload(
   const metadataFile = result.messages?.find(
     m => m.filename === 'manifest.json',
   );
-  const imageFile = result.messages?.find(
-    m => m.filename === 'image.png',
-  );
+  const imageFile = result.messages?.find(m => m.filename === 'image.png');
   if (metadataFile?.transactionId) {
     const link = `https://arweave.net/${metadataFile.transactionId}`;
     const imageLink = `https://arweave.net/${imageFile.transactionId}?ext=png`;
