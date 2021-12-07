@@ -7,6 +7,7 @@ import fetch from 'node-fetch';
 import { calculate } from '@metaplex/arweave-cost';
 import { ARWEAVE_PAYMENT_WALLET } from '../constants';
 import { sendTransactionWithRetryWithKeypair } from '../transactions';
+import { loadCandyProgram } from '../accounts';
 const fsPromises = require('fs').promises;
 
 const ARWEAVE_UPLOAD_ENDPOINT =
@@ -116,4 +117,24 @@ export async function arweaveUpload(
     // @todo improve
     throw new Error(`No transaction ID for upload: ${index}`);
   }
+}
+
+export async function arweaveUploadImageWrapper(
+  walletKeyPair,
+  env,
+  image,
+  manifestBuffer,
+  manifest,
+  index,
+) {
+  const anchorProgram = await loadCandyProgram(walletKeyPair, env, null);
+  return await arweaveUpload(
+    walletKeyPair,
+    anchorProgram,
+    env,
+    image,
+    manifestBuffer,
+    manifest,
+    index,
+  );
 }
